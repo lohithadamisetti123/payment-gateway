@@ -93,17 +93,20 @@ async function createPaymentInternal(body: any, merchantId: string, res: Respons
   }
 
   const payment = paymentRepo.create({
-    id,
-    order_id: order.id,
-    merchant_id: merchantId,
-    amount: order.amount,
-    currency: order.currency,
-    method,
-    status: 'processing',
-    vpa: null,
-    card_network: null,
-    card_last4: null
-  });
+  id,
+  order_id: order.id,
+  merchant_id: merchantId,
+  amount: order.amount,
+  currency: order.currency,
+  method,
+  status: 'processing',
+  vpa: null,
+  card_network: null,
+  card_last4: null,
+  error_code: null,
+  error_description: null
+});
+
 
   if (method === 'upi') {
     const { vpa } = body;

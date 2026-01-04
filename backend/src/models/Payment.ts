@@ -1,3 +1,5 @@
+// backend/src/models/Payment.ts
+
 import {
   Entity, PrimaryColumn, Column, ManyToOne,
   CreateDateColumn, UpdateDateColumn, Index, JoinColumn
@@ -8,7 +10,7 @@ import { Order } from './Order';
 @Entity({ name: 'payments' })
 export class Payment {
   @PrimaryColumn({ length: 64 })
-  id!: string; // pay_ + 16 chars
+  id!: string;
 
   @Index()
   @Column({ length: 64 })
@@ -28,26 +30,26 @@ export class Payment {
   @Column('integer')
   amount!: number;
 
-  @Column({ length: 3, default: 'INR' })
+  @Column({ type: 'varchar', length: 3, default: 'INR' })
   currency!: string;
 
-  @Column({ length: 20 })
-  method!: string; // upi | card
+  @Column({ type: 'varchar', length: 20 })
+  method!: string;
 
   @Index()
-  @Column({ length: 20, default: 'created' })
-  status!: string; // will be 'processing' then success/failed
+  @Column({ type: 'varchar', length: 20, default: 'created' })
+  status!: string;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   vpa!: string | null;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true })
   card_network!: string | null;
 
-  @Column({ length: 4, nullable: true })
+  @Column({ type: 'varchar', length: 4, nullable: true })
   card_last4!: string | null;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   error_code!: string | null;
 
   @Column({ type: 'text', nullable: true })

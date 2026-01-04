@@ -20,16 +20,18 @@ export class Order {
   @Column('integer')
   amount!: number;
 
-  @Column({ length: 3, default: 'INR' })
+  @Column({ type: 'varchar', length: 3, default: 'INR' })
   currency!: string;
 
-  @Column({ length: 255, nullable: true })
-  receipt!: string | null;
+  // CHANGE 1: make it just string, no union
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  receipt!: string;
 
+  // CHANGE 2: use any instead of unknown (safer for metadata)
   @Column({ type: 'jsonb', nullable: true })
-  notes!: Record<string, unknown> | null;
+  notes!: Record<string, any> | null;
 
-  @Column({ length: 20, default: 'created' })
+  @Column({ type: 'varchar', length: 20, default: 'created' })
   status!: string;
 
   @CreateDateColumn()

@@ -9,7 +9,8 @@ import { getTestMerchant } from './controllers/TestController';
 import { authMiddleware } from './middleware/auth';
 import { createOrder, getOrder, getOrderPublic } from './controllers/OrderController';
 import { createPayment, getPayment, createPaymentPublic } from './controllers/PaymentController';
-
+import { getPaymentStats } from './controllers/StatsController';
+import { listPayments } from './controllers/PaymentListController';
 async function bootstrap() {
   await AppDataSource.initialize();
   await seedTestMerchant();
@@ -35,8 +36,12 @@ async function bootstrap() {
   app.post('/api/v1/payments', authMiddleware, createPayment);
   app.get('/api/v1/payments/:payment_id', authMiddleware, getPayment);
 
+  app.get('/api/v1/payments-stats', authMiddleware, getPaymentStats);
+  app.get('/api/v1/payments-list', authMiddleware, listPayments);
   app.listen(config.port, () => {
     console.log(`API listening on port ${config.port}`);
+
+    
   });
 }
 
