@@ -27,12 +27,13 @@ export default function Login() {
         onChange={(e) => setEmail(e.target.value)}
       />
       <input
-        data-test-id="password-input"
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+  data-test-id="password-input"
+  type="password"
+  placeholder="Password"
+  autoComplete="current-password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+/>
       <button data-test-id="login-button" type="submit">
         Login
       </button>
