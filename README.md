@@ -269,7 +269,7 @@ Pattern: `^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+$`
 
 ## 🎥 Demo Video
 
-Watch the complete payment flow demonstration: [Video Link](https://your-video-link-here)
+Watch the complete payment flow demonstration: [Video Link](https://youtu.be/-Dsm5MRfrRQ?si=xe2Zm4GEwlq_LCqn)
 
 ## 🧪 Testing
 
