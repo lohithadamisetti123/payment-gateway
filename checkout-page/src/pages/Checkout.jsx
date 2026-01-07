@@ -5,12 +5,7 @@ export default function Checkout() {
   const [order, setOrder] = useState(null);
   const [method, setMethod] = useState(null);
   const [vpa, setVpa] = useState('');
-  const [card, setCard] = useState({
-    number: '',
-    expiry: '',
-    cvv: '',
-    holder: ''
-  });
+  const [card, setCard] = useState({ number: '', expiry: '', cvv: '', holder: '' });
   const [processing, setProcessing] = useState(false);
   const [paymentId, setPaymentId] = useState(null);
   const [status, setStatus] = useState(null);
@@ -20,12 +15,14 @@ export default function Checkout() {
 
   useEffect(() => {
     async function fetchOrder() {
-      const res = await axios.get(`http://localhost:8000/api/v1/orders/${orderId}/public`);
-      setOrder(res.data);
+      try {
+        const res = await axios.get(`http://localhost:8000/api/v1/orders/${orderId}/public`);
+        setOrder(res.data);
+      } catch (error) {
+        console.error('Failed to fetch order:', error);
+      }
     }
-    if (orderId) {
-      fetchOrder().catch(console.error);
-    }
+    if (orderId) fetchOrder();
   }, [orderId]);
 
   async function submitUPI(e) {
@@ -34,11 +31,7 @@ export default function Checkout() {
     setStatus(null);
     setErrorMessage('');
     try {
-      const res = await axios.post('http://localhost:8000/api/v1/payments/public', {
-        order_id: orderId,
-        method: 'upi',
-        vpa
-      });
+      const res = await axios.post('http://localhost:8000/api/v1/payments/public', { order_id: orderId, method: 'upi', vpa });
       setPaymentId(res.data.id);
       setStatus(res.data.status);
     } catch (err) {
@@ -57,15 +50,8 @@ export default function Checkout() {
     try {
       const [month, year] = card.expiry.split('/');
       const res = await axios.post('http://localhost:8000/api/v1/payments/public', {
-        order_id: orderId,
-        method: 'card',
-        card: {
-          number: card.number,
-          expiry_month: month,
-          expiry_year: year,
-          cvv: card.cvv,
-          holder_name: card.holder
-        }
+        order_id: orderId, method: 'card',
+        card: { number: card.number, expiry_month: month.trim(), expiry_year: year.trim(), cvv: card.cvv, holder_name: card.holder }
       });
       setPaymentId(res.data.id);
       setStatus(res.data.status);
@@ -81,132 +67,159 @@ export default function Checkout() {
     setStatus(null);
     setPaymentId(null);
     setErrorMessage('');
+    setMethod(null);
+    setVpa('');
+    setCard({ number: '', expiry: '', cvv: '', holder: '' });
   }
 
-  const displayAmount = order
-    ? `₹${(order.amount / 100).toFixed(2)}`
-    : '';
+  const displayAmount = order ? `₹${(order.amount / 100).toFixed(2)}` : '';
+
+  // Improved button styles
+  const getMethodButtonStyle = (isSelected) => ({
+    background: isSelected ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'white',
+    color: isSelected ? 'white' : '#1a1f36',
+    border: `2px solid ${isSelected ? '#667eea' : '#e3e8ee'}`,
+    padding: '20px',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '12px',
+    fontWeight: '600',
+    boxShadow: isSelected ? '0 4px 12px rgba(102, 126, 234, 0.3)' : '0 2px 4px rgba(0,0,0,0.08)',
+    transform: isSelected ? 'scale(1.02)' : 'scale(1)'
+  });
+
+  const payButtonStyle = {
+    background: 'linear-gradient(135deg, #0cce6b 0%, #00a854 100%)',
+    color: 'white',
+    padding: '16px',
+    borderRadius: '8px',
+    fontSize: '16px',
+    fontWeight: '700',
+    border: 'none',
+    cursor: 'pointer',
+    width: '100%',
+    boxShadow: '0 4px 12px rgba(12, 206, 107, 0.3)',
+    transition: 'all 0.2s ease'
+  };
+
+  const retryButtonStyle = {
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: 'white',
+    padding: '14px 32px',
+    borderRadius: '8px',
+    fontSize: '15px',
+    fontWeight: '600',
+    border: 'none',
+    cursor: 'pointer',
+    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+    transition: 'all 0.2s ease'
+  };
 
   return (
-    <div data-test-id="checkout-container">
-      <div data-test-id="order-summary">
-        <h2>Complete Payment</h2>
-        <div>
-          <span>Amount: </span>
-          <span data-test-id="order-amount">{displayAmount}</span>
+    <div data-test-id="checkout-container" style={{ width: '100%', maxWidth: '480px', margin: '0 auto' ,background: 'white', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden' }}>
+      <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', padding: '32px 24px', textAlign: 'center' }}>
+        <div style={{ fontSize: '48px', marginBottom: '12px' }}>💳</div>
+        <h2 style={{ fontSize: '26px', marginBottom: '8px', fontWeight: '700' }}>Secure Checkout</h2>
+        <p style={{ opacity: 0.95, fontSize: '14px' }}>Complete your payment securely</p>
+      </div>
+
+      <div style={{ padding: '28px' }}>
+        <div data-test-id="order-summary" style={{ padding: '20px', background: '#f7f9fc', borderRadius: '12px', marginBottom: '28px', border: '1px solid #e3e8ee' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <span style={{ color: '#697386', fontSize: '14px', fontWeight: '500' }}>Order ID:</span>
+            <span data-test-id="order-id" style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: '700', color: '#1a1f36' }}>{orderId}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid #e3e8ee' }}>
+            <span style={{ fontSize: '16px', fontWeight: '700', color: '#1a1f36' }}>Amount to Pay</span>
+            <span data-test-id="order-amount" style={{ fontSize: '28px', fontWeight: '800', color: '#5469d4' }}>{displayAmount}</span>
+          </div>
         </div>
-        <div>
-          <span>Order ID: </span>
-          <span data-test-id="order-id">{orderId}</span>
+
+        {!status && (
+          <>
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '15px', fontWeight: '700', marginBottom: '16px', color: '#1a1f36' }}>Select Payment Method</label>
+              <div data-test-id="payment-methods" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <button data-test-id="method-upi" data-method="upi" onClick={() => setMethod('upi')} style={getMethodButtonStyle(method === 'upi')}>
+                  <div style={{ fontSize: '36px' }}>📱</div>
+                  <div style={{ fontSize: '15px', fontWeight: '700' }}>UPI</div>
+                </button>
+                <button data-test-id="method-card" data-method="card" onClick={() => setMethod('card')} style={getMethodButtonStyle(method === 'card')}>
+                  <div style={{ fontSize: '36px' }}>💳</div>
+                  <div style={{ fontSize: '15px', fontWeight: '700' }}>Card</div>
+                </button>
+              </div>
+            </div>
+
+            <form data-test-id="upi-form" onSubmit={submitUPI} style={{ display: method === 'upi' ? 'block' : 'none' }}>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', marginBottom: '10px', color: '#1a1f36' }}>UPI ID / VPA</label>
+                <input data-test-id="vpa-input" placeholder="username@paytm" type="text" value={vpa} onChange={(e) => setVpa(e.target.value)} required style={{ padding: '14px 16px', fontSize: '15px', borderRadius: '8px', border: '2px solid #e3e8ee' }} />
+                <p style={{ fontSize: '13px', color: '#697386', marginTop: '8px' }}>Enter your UPI ID (e.g., yourname@paytm)</p>
+              </div>
+              <button data-test-id="pay-button" type="submit" disabled={processing} style={payButtonStyle} onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}>
+                {processing ? '⏳ Processing...' : `💰 Pay ${displayAmount}`}
+              </button>
+            </form>
+
+            <form data-test-id="card-form" onSubmit={submitCard} style={{ display: method === 'card' ? 'block' : 'none' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', marginBottom: '10px', color: '#1a1f36' }}>Card Number</label>
+                <input data-test-id="card-number-input" placeholder="1234 5678 9012 3456" type="text" value={card.number} onChange={(e) => setCard({ ...card, number: e.target.value })} required style={{ padding: '14px 16px', fontSize: '15px', borderRadius: '8px', border: '2px solid #e3e8ee' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', marginBottom: '10px', color: '#1a1f36' }}>Expiry (MM/YY)</label>
+                  <input data-test-id="expiry-input" placeholder="12/26" type="text" value={card.expiry} onChange={(e) => setCard({ ...card, expiry: e.target.value })} required style={{ padding: '14px 16px', fontSize: '15px', borderRadius: '8px', border: '2px solid #e3e8ee' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', marginBottom: '10px', color: '#1a1f36' }}>CVV</label>
+                  <input data-test-id="cvv-input" placeholder="123" type="text" maxLength="4" value={card.cvv} onChange={(e) => setCard({ ...card, cvv: e.target.value })} required style={{ padding: '14px 16px', fontSize: '15px', borderRadius: '8px', border: '2px solid #e3e8ee' }} />
+                </div>
+              </div>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', marginBottom: '10px', color: '#1a1f36' }}>Cardholder Name</label>
+                <input data-test-id="cardholder-name-input" placeholder="John Doe" type="text" value={card.holder} onChange={(e) => setCard({ ...card, holder: e.target.value })} required style={{ padding: '14px 16px', fontSize: '15px', borderRadius: '8px', border: '2px solid #e3e8ee' }} />
+              </div>
+              <button data-test-id="pay-button" type="submit" disabled={processing} style={payButtonStyle} onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}>
+                {processing ? '⏳ Processing...' : `💰 Pay ${displayAmount}`}
+              </button>
+            </form>
+          </>
+        )}
+
+        <div data-test-id="processing-state" style={{ display: processing ? 'flex' : 'none', flexDirection: 'column', alignItems: 'center', padding: '48px 20px', textAlign: 'center' }}>
+          <div className="spinner" style={{ marginBottom: '20px' }}></div>
+          <span data-test-id="processing-message" style={{ fontSize: '18px', fontWeight: '700', color: '#1a1f36' }}>Processing payment...</span>
+          <p style={{ color: '#697386', fontSize: '14px', marginTop: '12px' }}>Please wait while we process your transaction</p>
         </div>
-      </div>
 
-      <div data-test-id="payment-methods">
-        <button
-          data-test-id="method-upi"
-          data-method="upi"
-          onClick={() => setMethod('upi')}
-        >
-          UPI
-        </button>
-        <button
-          data-test-id="method-card"
-          data-method="card"
-          onClick={() => setMethod('card')}
-        >
-          Card
-        </button>
-      </div>
-
-      <form
-        data-test-id="upi-form"
-        style={{ display: method === 'upi' ? 'block' : 'none' }}
-        onSubmit={submitUPI}
-      >
-        <input
-          data-test-id="vpa-input"
-          placeholder="username@bank"
-          type="text"
-          value={vpa}
-          onChange={(e) => setVpa(e.target.value)}
-        />
-        <button data-test-id="pay-button" type="submit">
-          Pay {displayAmount}
-        </button>
-      </form>
-
-      <form
-        data-test-id="card-form"
-        style={{ display: method === 'card' ? 'block' : 'none' }}
-        onSubmit={submitCard}
-      >
-        <input
-          data-test-id="card-number-input"
-          placeholder="Card Number"
-          type="text"
-          value={card.number}
-          onChange={(e) => setCard({ ...card, number: e.target.value })}
-        />
-        <input
-          data-test-id="expiry-input"
-          placeholder="MM/YY"
-          type="text"
-          value={card.expiry}
-          onChange={(e) => setCard({ ...card, expiry: e.target.value })}
-        />
-        <input
-          data-test-id="cvv-input"
-          placeholder="CVV"
-          type="text"
-          value={card.cvv}
-          onChange={(e) => setCard({ ...card, cvv: e.target.value })}
-        />
-        <input
-          data-test-id="cardholder-name-input"
-          placeholder="Name on Card"
-          type="text"
-          value={card.holder}
-          onChange={(e) => setCard({ ...card, holder: e.target.value })}
-        />
-        <button data-test-id="pay-button" type="submit">
-          Pay {displayAmount}
-        </button>
-      </form>
-
-      <div
-        data-test-id="processing-state"
-        style={{ display: processing ? 'block' : 'none' }}
-      >
-        <div className="spinner"></div>
-        <span data-test-id="processing-message">Processing payment...</span>
-      </div>
-
-      <div
-        data-test-id="success-state"
-        style={{ display: status === 'success' ? 'block' : 'none' }}
-      >
-        <h2>Payment Successful!</h2>
-        <div>
-          <span>Payment ID: </span>
-          <span data-test-id="payment-id">{paymentId}</span>
+        <div data-test-id="success-state" style={{ display: status === 'success' ? 'block' : 'none', textAlign: 'center', padding: '32px 20px' }}>
+          <div style={{ fontSize: '72px', marginBottom: '20px' }}>✅</div>
+          <h2 style={{ fontSize: '26px', marginBottom: '16px', color: '#0cce6b', fontWeight: '700' }}>Payment Successful!</h2>
+          <div style={{ padding: '16px', background: '#f7f9fc', borderRadius: '12px', marginBottom: '16px', border: '1px solid #e3e8ee' }}>
+            <div style={{ fontSize: '12px', color: '#697386', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Payment ID</div>
+            <div data-test-id="payment-id" style={{ fontFamily: 'monospace', fontSize: '15px', fontWeight: '700', color: '#1a1f36' }}>{paymentId}</div>
+          </div>
+          <span data-test-id="success-message" style={{ color: '#697386', fontSize: '15px' }}>Your payment has been processed successfully</span>
         </div>
-        <span data-test-id="success-message">
-          Your payment has been processed successfully
-        </span>
-      </div>
 
-      <div
-        data-test-id="error-state"
-        style={{ display: status === 'failed' ? 'block' : 'none' }}
-      >
-        <h2>Payment Failed</h2>
-        <span data-test-id="error-message">
-          {errorMessage || 'Payment could not be processed'}
-        </span>
-        <button data-test-id="retry-button" onClick={retry}>
-          Try Again
-        </button>
+                <div data-test-id="error-state" style={{ display: status === 'failed' ? 'block' : 'none', textAlign: 'center', padding: '32px 20px' }}>
+          <div style={{ fontSize: '72px', marginBottom: '20px' }}>❌</div>
+          <h2 style={{ fontSize: '26px', marginBottom: '16px', color: '#ff4d4f', fontWeight: '700' }}>Payment Failed</h2>
+          <div style={{ padding: '16px', background: 'rgba(255, 77, 79, 0.1)', border: '2px solid #ff4d4f', borderRadius: '12px', marginBottom: '24px' }}>
+            <span data-test-id="error-message" style={{ color: '#ff4d4f', fontSize: '15px', fontWeight: '600' }}>{errorMessage || 'Payment could not be processed'}</span>
+          </div>
+          <button data-test-id="retry-button" onClick={retry} style={retryButtonStyle} onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}>
+            🔄 Try Again
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+
